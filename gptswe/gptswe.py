@@ -45,7 +45,7 @@ def print_commit_message(args, author_name="GPT-4", author_email="gpt4@openai.co
     committer_name = subprocess.check_output(["git", "config", "user.name"]).decode("utf-8").strip()
     committer_email = subprocess.check_output(["git", "config", "user.email"]).decode("utf-8").strip()
     msg = 'Prompt: {}'.format(args.instruction.replace('\n', ' '))
-    print("Commit the results of this prompt with:")
+    print("\nCommit the results of this prompt with:")
     print(f"git commit -m \"{msg}\" --author=\"{author_name} <{author_email}>\" --committer=\"{committer_name} <{committer_email}>\"")
 
 
@@ -58,6 +58,7 @@ def main():
     par.add_argument("-i", "--inputpath", default=".", help="Path to input Git repository (default $PWD)")
     par.add_argument("--max-tokens", type=int, default=8000, help="Maximum number of tokens to generate")
     par.add_argument("-c", "--clipboard", action="store_true", help="Copy the output to the clipboard")
+    par.add_argument("-m", "--commit-message", action="store_true", help="Output a copyable commit message")
     args = par.parse_args()
 
     fp = io.StringIO()
