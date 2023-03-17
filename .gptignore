@@ -3,6 +3,8 @@ __pycache__/
 *.log
 .git/*
 .gptignore
+.gitignore
 LICENSE
 .github/*
 setup.py
+venv/
