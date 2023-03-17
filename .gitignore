@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+dist/
+build/
 
 # Output file
 output.txt
