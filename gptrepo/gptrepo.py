@@ -6,7 +6,7 @@ from pathspec.patterns import GitWildMatchPattern
 import gptwc
 
 PREPROMPT = "Please read all of the following files carefully.\n"
-INSTRUCTION = "Instructions: Read the above code. Identify and fix any obvious bugs in a terse but elegant style, with a comment explaining each fix. Output only a patch file containing your fixes.\n"
+INSTRUCTION = "Instructions: Read the above code. Identify and fix any obvious bugs in a terse but elegant style. Output a brief explanation of each fix.\n"
 
 
 def get_ignore_spec(repo_path, ignore_paths):
