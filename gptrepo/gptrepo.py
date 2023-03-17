@@ -1,6 +1,5 @@
 import os
 import sys
-import fnmatch
 import argparse
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
@@ -11,7 +10,7 @@ PRELUDE="The following text is a Git repository with code. The structure of the 
 def get_ignore_spec(repo_path, ignore_paths):
     dotignores = [os.path.join(repo_path, i) for i in ignore_paths]
     ignore_list = [line.strip() for path in dotignores if os.path.exists(path)
-                   for line in open(path, 'r')]
+                   for line in open(path, 'r')] + ["**/.git/**"]
     return PathSpec.from_lines(GitWildMatchPattern, ignore_list)
 
 
