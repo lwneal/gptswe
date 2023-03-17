@@ -6,6 +6,7 @@ from pathspec.patterns import GitWildMatchPattern
 import gptwc
 import io
 import pyperclip
+import subprocess
 
 PREPROMPT = "Please read all of the following files carefully.\n"
 INSTRUCTION = "Instructions: Read the above code. Identify and fix any obvious bugs in a terse but elegant style. Output a brief explanation of each fix.\n"
@@ -40,40 +41,49 @@ def process_repository(repo_path, ignore, fp):
     return token_count
 
 
+def print_commit_message(args, author_name="GPT-4", author_email="gpt4@openai.com"):
+    committer_name = subprocess.check_output(["git", "config", "user.name"]).decode("utf-8").strip()
+    committer_email = subprocess.check_output(["git", "config", "user.email"]).decode("utf-8").strip()
+    msg = 'Prompt: {}'.format(args.instruction.replace('\n', ' '))
+    print("Commit the results of this prompt with:")
+    print(f"git commit -m \"{msg}\" --author=\"{author_name} <{author_email}>\" --committer=\"{committer_name} <{committer_email}>\"")
+
+
 def main():
     par = argparse.ArgumentParser(description="Convert a Git repository into a text format")
-    par.add_argument("repo_path", nargs="?", default=".", help="Path to the Git repository")
+    par.add_argument("instruction", nargs="?", default=INSTRUCTION, help="Prompt instructing the model")
     par.add_argument("-o", "--output", default=None, help="Path to the output file")
-    par.add_argument("--ignore", nargs='*', default=[".gptignore", ".gitignore"], help="Paths to the ignore files")
-    par.add_argument("--preprompt", default=PREPROMPT, help="Text to be displayed before the repository")
-    par.add_argument("-i", "--instruction", default=INSTRUCTION, help="Instruction text displayed at the end")
+    par.add_argument("--ignore", nargs='*', default=[".gptignore", ".gitignore"], help="Paths to all ignore files in .gitignore format")
+    par.add_argument("--preprompt", default=PREPROMPT, help=f"Text to be displayed before the repository, default {PREPROMPT}")
+    par.add_argument("-i", "--inputpath", default=".", help="Path to input Git repository (default $PWD)")
     par.add_argument("--max-tokens", type=int, default=8000, help="Maximum number of tokens to generate")
     par.add_argument("-c", "--clipboard", action="store_true", help="Copy the output to the clipboard")
     args = par.parse_args()
 
-    if args.output is None:
-        fp = io.StringIO()
-    else:
-        fp = io.StringIO()
-
+    fp = io.StringIO()
     fp.write(args.preprompt)
-    content_tokens = process_repository(args.repo_path, args.ignore, fp)
+    content_tokens = process_repository(args.inputpath, args.ignore, fp)
     fp.write(args.instruction)
 
-    token_count = gptwc.token_count(args.preprompt) + content_tokens + gptwc.token_count(args.instruction)
-    sys.stderr.write(f"\n{token_count} tokens written to {args.output or 'stdout'}\n")
+    full_output = fp.getvalue()
+    if args.output is not None:
+        with open(args.output, 'w') as of:
+            of.write(full_output)
+    else:
+        print(full_output)
+
+    token_count = gptwc.token_count(full_output)
     if token_count > args.max_tokens:
         sys.stderr.write(f"WARNING: {token_count} tokens exceeds the maximum of {args.max_tokens} tokens\nTry adding files to .gptignore or reducing the size of the codebase.\n")
 
     if args.clipboard:
         full_output = fp.getvalue()
         pyperclip.copy(full_output)
-        print("Output has been copied to the clipboard.")
-        print(full_output)
+        sys.stderr.write(f"\n{token_count} tokens copied to the clipboard.\n")
+    else:
+        sys.stderr.write(f"\n{token_count} tokens written to {args.output or 'stdout'}\n")
 
-    if args.output is not None:
-        with open(args.output, 'w') as outfile:
-            outfile.write(full_output)
+    print_commit_message(args)
 
 if __name__ == "__main__":
     main()
