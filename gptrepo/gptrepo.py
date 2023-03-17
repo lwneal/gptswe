@@ -28,7 +28,7 @@ def process_repository(repo_path, ignore_spec, fp):
 
 def main():
     par = argparse.ArgumentParser(description="Convert a Git repository into a text format")
-    par.add_argument("repo_path", default=".", help="Path to the Git repository")
+    par.add_argument("repo_path", nargs="?", default=".", help="Path to the Git repository")
     par.add_argument("-o", "--output", default=None, help="Path to the output file")
     par.add_argument("--ignore", nargs='*', default=[".gptignore", ".gitignore"], help="Paths to the ignore files")
     args = par.parse_args()
