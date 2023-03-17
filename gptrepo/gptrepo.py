@@ -5,8 +5,8 @@ from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 import gptwc
 
-PREPROMPT = "Please read all of the following files. Each file begins with a filename followed by ```` and the sequence of files ends with ``END``\n"
-INSTRUCTION = "Instructions: Read the above code. Identify any obvious bugs or security issues and suggest fixes in a terse, elegant, professional style. Show me each fixed line of code, with comments explaining each fix.\n"
+PREPROMPT = "Please read all of the following files carefully.\n"
+INSTRUCTION = "Instructions: Read the above code. Identify and fix any obvious bugs in a terse but elegant style, with a comment explaining each fix. Output only a patch file containing your fixes.\n"
 
 
 def get_ignore_spec(repo_path, ignore_paths):
@@ -24,8 +24,11 @@ def process_repository(repo_path, ignore, fp):
             file_path = os.path.join(root, file)
             relpath = os.path.relpath(file_path, repo_path)
             if not ignore_spec.match_file(relpath):
-                with open(file_path, 'r', errors="replace") as file:
-                    contents = file.read()
+                with open(file_path, 'r') as file:
+                    try:
+                        contents = file.read()
+                    except UnicodeDecodeError:
+                        continue
                 text = f"`````\n{relpath}\n````\n{contents}\n"
                 token_count += gptwc.token_count(text)
                 fp.write(text)
@@ -42,6 +45,7 @@ def main():
     par.add_argument("--ignore", nargs='*', default=[".gptignore", ".gitignore"], help="Paths to the ignore files")
     par.add_argument("--preprompt", default=PREPROMPT, help="Text to be displayed before the repository")
     par.add_argument("-i", "--instruction", default=INSTRUCTION, help="Instruction text displayed at the end")
+    par.add_argument("--max-tokens", type=int, default=8000, help="Maximum number of tokens to generate")
     args = par.parse_args()
 
     if args.output is None:
@@ -55,6 +59,8 @@ def main():
 
     token_count = gptwc.token_count(args.preprompt) + content_tokens + gptwc.token_count(args.instruction)
     sys.stderr.write(f"\n{token_count} tokens written to {args.output or 'stdout'}\n")
+    if token_count > args.max_tokens:
+        sys.stderr.write(f"WARNING: {token_count} tokens exceeds the maximum of {args.max_tokens} tokens\nTry adding files to .gptignore or reducing the size of the codebase.\n")
 
 if __name__ == "__main__":
     main()
