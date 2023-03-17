@@ -7,6 +7,9 @@ import gptwc
 import io
 import pyperclip
 import subprocess
+from pkg_resources import get_distribution
+__version__ = get_distribution("gptswe").version
+
 
 PREPROMPT = "Please read all of the following files carefully. Output terse copy-pasteable instructions.\n"
 INSTRUCTION = "Instructions: Read the above code. Identify and fix any obvious bugs in a terse but elegant style. Output a brief explanation of each fix.\n"
@@ -62,6 +65,7 @@ def main():
     par.add_argument("--max-tokens", type=int, default=8000, help="Maximum number of tokens to generate")
     par.add_argument("-c", "--clipboard", action="store_true", help="Copy the output to the clipboard")
     par.add_argument("-m", "--commit-message", action="store_true", help="Output a copyable commit message")
+    par.add_argument("--version", action="version", version=f"%(prog)s {__version__}", help="Display the version number and exit")
     args = par.parse_args()
 
     fp = io.StringIO()
