@@ -8,33 +8,37 @@ import io
 import pyperclip
 import subprocess
 
-PREPROMPT = "Please read all of the following files carefully.\n"
+PREPROMPT = "Please read all of the following files carefully. Output terse copy-pasteable instructions.\n"
 INSTRUCTION = "Instructions: Read the above code. Identify and fix any obvious bugs in a terse but elegant style. Output a brief explanation of each fix.\n"
 
 
 def get_ignore_spec(repo_path, ignore_paths):
     dotignores = [os.path.join(repo_path, i) for i in ignore_paths]
     ignore_list = [line.strip() for path in dotignores if os.path.exists(path)
-                   for line in open(path, 'r')] + [".*", "*.pem"]
+                   for line in open(path, 'r')] + [".*", "*.pem", 'venv']
     return PathSpec.from_lines(GitWildMatchPattern, ignore_list)
 
 
 def process_repository(repo_path, ignore, fp):
     ignore_spec = get_ignore_spec(repo_path, ignore)
     token_count = 0
-    for root, _, files in os.walk(repo_path):
-        for file in files:
-            file_path = os.path.join(root, file)
-            relpath = os.path.relpath(file_path, repo_path)
-            if not ignore_spec.match_file(relpath):
-                with open(file_path, 'r') as file:
-                    try:
-                        contents = file.read()
-                    except UnicodeDecodeError:
-                        continue
-                text = f"`````\n{relpath}\n````\n{contents}\n"
-                token_count += gptwc.token_count(text)
-                fp.write(text)
+
+    # Get a list of all files tracked by git
+    tracked_files = subprocess.check_output(["git", "ls-files"], cwd=repo_path, text=True).splitlines()
+
+    for file in tracked_files:
+        file_path = os.path.join(repo_path, file)
+        relpath = os.path.relpath(file_path, repo_path)
+        if not ignore_spec.match_file(relpath):
+            with open(file_path, 'r') as file:
+                try:
+                    contents = file.read()
+                except UnicodeDecodeError:
+                    continue
+            text = f"`````\n{relpath}\n````\n{contents}\n"
+            token_count += gptwc.token_count(text)
+            fp.write(text)
+
     text = "````\n\n"
     token_count += gptwc.token_count(text)
     fp.write(text)
@@ -63,7 +67,7 @@ def main():
     fp = io.StringIO()
     fp.write(args.preprompt)
     content_tokens = process_repository(args.inputpath, args.ignore, fp)
-    fp.write(args.instruction)
+    fp.write('Instructions: ' + args.instruction)
 
     full_output = fp.getvalue()
 
