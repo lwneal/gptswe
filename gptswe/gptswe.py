@@ -45,8 +45,7 @@ def print_commit_message(args, author_name="GPT-4", author_email="gpt4@openai.co
     committer_name = subprocess.check_output(["git", "config", "user.name"]).decode("utf-8").strip()
     committer_email = subprocess.check_output(["git", "config", "user.email"]).decode("utf-8").strip()
     msg = 'Prompt: {}'.format(args.instruction.replace('\n', ' '))
-    print("\nCommit the results of this prompt with:")
-    print(f"git commit -m \"{msg}\" --author=\"{author_name} <{author_email}>\" --committer=\"{committer_name} <{committer_email}>\"")
+    print(f"\nCOMMITTER_NAME=\"{committer_name}\" COMMITTER_EMAIL=\"{committer_email}\" git commit -a -m \"{msg}\" --author=\"{author_name} <{author_email}>\"\n")
 
 
 def main():
@@ -67,7 +66,11 @@ def main():
     fp.write(args.instruction)
 
     full_output = fp.getvalue()
-    if args.output is not None:
+
+    if args.commit_message:
+        print_commit_message(args)
+        return
+    elif args.output:
         with open(args.output, 'w') as of:
             of.write(full_output)
     else:
@@ -83,8 +86,6 @@ def main():
         sys.stderr.write(f"\n{token_count} tokens copied to the clipboard.\n")
     else:
         sys.stderr.write(f"\n{token_count} tokens written to {args.output or 'stdout'}\n")
-
-    print_commit_message(args)
 
 if __name__ == "__main__":
     main()
