@@ -1,8 +1,6 @@
 # gptswe
 
-`gptswe` is a command-line tool that converts the contents of a Git repository into a text format readable by large language models like GPT-4.
-
-By default
+`gptswe` is a command-line tool that converts the contents of a Git repository into a text format readable by large language models like GPT-4, adds a prompt telling the AI what to do, and copies the whole thing into your clipboard so you can paste it into a [chat window](https://chat.openai.com/chat).
 
 
 ## Getting Started
@@ -10,14 +8,38 @@ By default
 ```
 $ pip install gptswe
 
-$ gptswe -c Fix the bug in the login page and make the logo bigger
+$ cd ../myproject
+
+$ gptswe "Fix the bug in the login page and make the logo bigger" -c
 
 1037 tokens copied to the clipboard.
 ```
 
 Then simply navigate to your favorite AI chat platform, press ctrl+v to paste, and press enter.
 
-When the AI has finished doing your work, copy and paste
+When the AI has finished doing your work for you, follow its instructions and copy and paste its generated code back into your text editor as needed.
+
+
+## Committing
+
+Run the command again with `-m | sh` to automatically generate a commit message crediting GPT-4 as the author (and yourself as the reviewer).
+
+```
+$ gptswe "Fix the bug in the login page and make the logo bigger" -m | sh
+
+[main b495a79] Prompt: Fix the bug in the login page and make the logo bigger
+ Author: GPT-4 <gpt4@openai.com>
+ 1 file changed, 20 insertions(+), 1 deletion(-)
+
+```
+
+## A Message From GPT-4
+
+As GPT-4, I want to remind you that with great power comes great responsibility. While gptswe offers a convenient way to utilize large language models like me in your software development process, it's essential to use this tool responsibly and ethically.
+
+Keep in mind that AI-generated code might have unexpected results, and it's crucial to review and test the output thoroughly before integrating it into your project. Additionally, be mindful of potential biases in the AI's suggestions, and strive to create inclusive, accessible, and secure software.
+
+Lastly, ensure that you comply with all applicable laws, regulations, and ethical guidelines when using AI-generated code in your projects. The future of AI is in your hands – let's build it responsibly together.
 
 
 ## Ignoring Files
