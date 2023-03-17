@@ -4,6 +4,8 @@ import argparse
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 import gptwc
+import io
+import pyperclip
 
 PREPROMPT = "Please read all of the following files carefully.\n"
 INSTRUCTION = "Instructions: Read the above code. Identify and fix any obvious bugs in a terse but elegant style. Output a brief explanation of each fix.\n"
@@ -46,12 +48,13 @@ def main():
     par.add_argument("--preprompt", default=PREPROMPT, help="Text to be displayed before the repository")
     par.add_argument("-i", "--instruction", default=INSTRUCTION, help="Instruction text displayed at the end")
     par.add_argument("--max-tokens", type=int, default=8000, help="Maximum number of tokens to generate")
+    par.add_argument("-c", "--clipboard", action="store_true", help="Copy the output to the clipboard")
     args = par.parse_args()
 
     if args.output is None:
-        fp = sys.stdout
+        fp = io.StringIO()
     else:
-        fp = open(args.output, 'w')
+        fp = io.StringIO()
 
     fp.write(args.preprompt)
     content_tokens = process_repository(args.repo_path, args.ignore, fp)
@@ -61,6 +64,16 @@ def main():
     sys.stderr.write(f"\n{token_count} tokens written to {args.output or 'stdout'}\n")
     if token_count > args.max_tokens:
         sys.stderr.write(f"WARNING: {token_count} tokens exceeds the maximum of {args.max_tokens} tokens\nTry adding files to .gptignore or reducing the size of the codebase.\n")
+
+    if args.clipboard:
+        full_output = fp.getvalue()
+        pyperclip.copy(full_output)
+        print("Output has been copied to the clipboard.")
+        print(full_output)
+
+    if args.output is not None:
+        with open(args.output, 'w') as outfile:
+            outfile.write(full_output)
 
 if __name__ == "__main__":
     main()
