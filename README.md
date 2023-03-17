@@ -3,10 +3,13 @@
 `gptswe` is a command-line tool that converts the contents of a Git repository into a text format readable by large language models like GPT-4, adds a prompt telling the AI what to do, and copies the whole thing into your clipboard so you can paste it into a [chat window](https://chat.openai.com/chat).
 
 
-## Getting Started
+## Installation
 
 ```
 $ pip install gptswe
+```
+
+## Usage
 
 $ cd ../myproject
 
@@ -35,7 +38,7 @@ $ gptswe "Fix the bug in the login page and make the logo bigger" -m | sh
 
 ## A Message From GPT-4
 
-As GPT-4, I want to remind you that with great power comes great responsibility. While gptswe offers a convenient way to utilize large language models like me in your software development process, it's essential to use this tool responsibly and ethically.
+As GPT-4, I want to remind you that with great power comes great responsibility. While `gptswe` offers a convenient way to utilize large language models like me in your software development process, it's essential to use this tool responsibly and ethically.
 
 Keep in mind that AI-generated code might have unexpected results, and it's crucial to review and test the output thoroughly before integrating it into your project. Additionally, be mindful of potential biases in the AI's suggestions, and strive to create inclusive, accessible, and secure software.
 
