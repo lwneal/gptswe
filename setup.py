@@ -13,5 +13,10 @@ setup(
             "gptswe=gptswe.gptswe:main",
         ]
     },
+    author="Larry Neal",
+    author_email="nealla@lwneal.com",
+    description="A command-line tool that converts Git repositories into a text format readable by GPT-4 and copies it to your clipboard",
+    license="MIT",
+    url="https://github.com/lwneal/gptswe",
 )
 

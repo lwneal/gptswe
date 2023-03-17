@@ -2,9 +2,6 @@ __pycache__/
 *.pyc
 *.log
 .git/*
-.gptignore
-.gitignore
 LICENSE
 .github/*
-setup.py
 venv/
