@@ -5,7 +5,7 @@ from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 
 PREPROMPT = "Please read all of the following files. Each file begins with a filename followed by ```` and the sequence of files ends with ``END``\n"
-POSTPROMPT = "Instructions: Read the above code. Identify any obvious bugs or security issues and suggest fixes in a terse, elegant, professional style. Tell me the fixes and nothing else.\n"
+POSTPROMPT = "Instructions: Read the above code. Identify any obvious bugs or security issues and suggest fixes in a terse, elegant, professional style. Show me each fixed line of code, with comments explaining each fix.\n"
 
 
 def get_ignore_spec(repo_path, ignore_paths):
@@ -22,7 +22,7 @@ def process_repository(repo_path, ignore, fp):
             file_path = os.path.join(root, file)
             relpath = os.path.relpath(file_path, repo_path)
             if not ignore_spec.match_file(relpath):
-                with open(file_path, 'r', errors="ignore") as file:
+                with open(file_path, 'r', errors="replace") as file:
                     contents = file.read()
                 fp.write(f"`````\n{relpath}\n````\n{contents}\n")
     fp.write("````\n\n")
