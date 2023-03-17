@@ -11,6 +11,7 @@ $ pip install gptswe
 
 ## Usage
 
+```
 $ cd ../myproject
 
 $ gptswe "Fix the bug in the login page and make the logo bigger" -c
