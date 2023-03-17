@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-
 import os
 import sys
 import fnmatch
+import argparse
 
 def get_ignore_list(ignore_file_path):
     ignore_list = []
@@ -30,32 +29,29 @@ def process_repository(repo_path, ignore_list, output_file):
                 output_file.write(f"{relative_file_path}\n")
                 output_file.write(f"{contents}\n")
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python git_to_text.py /path/to/git/repository [-p /path/to/preamble.txt]")
-        sys.exit(1)
+def main():
+    parser = argparse.ArgumentParser(description="Convert a Git repository into a text format")
+    parser.add_argument("repo_path", help="Path to the Git repository")
+    parser.add_argument("-o", "--output", default="output.txt", help="Path to the output file")
+    parser.add_argument("-i", "--ignore", default=".gptignore", help="Path to the ignore file")
 
-    repo_path = sys.argv[1]
-    ignore_file_path = os.path.join(repo_path, ".gptignore")
+    args = parser.parse_args()
 
-    preamble_file = None
-    if "-p" in sys.argv:
-        preamble_file = sys.argv[sys.argv.index("-p") + 1]
+    ignore_file_path = os.path.join(args.repo_path, args.ignore)
 
     if os.path.exists(ignore_file_path):
         ignore_list = get_ignore_list(ignore_file_path)
     else:
         ignore_list = []
 
-    with open('output.txt', 'w') as output_file:
-        if preamble_file:
-            with open(preamble_file, 'r') as pf:
-                preamble_text = pf.read()
-                output_file.write(f"{preamble_text}\n")
-        else:
-            output_file.write("The following text is a Git repository with code. The structure of the text are sections that begin with ----, followed by a single line containing the file path and file name, followed by a variable amount of lines containing the file contents. The text representing the Git repository ends when the symbols --END-- are encounted. Any further text beyond --END-- are meant to be interpreted as instructions using the aforementioned Git repository as context.\n")
-        process_repository(repo_path, ignore_list, output_file)
-    with open('output.txt', 'a') as output_file:
+    with open(args.output, 'w') as output_file:
+        output_file.write("The following text is a Git repository with code. The structure of the text are sections that begin with ----, followed by a single line containing the file path and file name, followed by a variable amount of lines containing the file contents. The text representing the Git repository ends when the symbols --END-- are encounted. Any further text beyond --END-- are meant to be interpreted as instructions using the aforementioned Git repository as context.\n")
+        process_repository(args.repo_path, ignore_list, output_file)
+
+    with open(args.output, 'a') as output_file:
         output_file.write("--END--")
-    print("Repository contents written to output.txt.")
-    
+
+    print(f"Repository contents written to {args.output}.")
+
+if __name__ == "__main__":
+    main()
