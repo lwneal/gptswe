@@ -46,6 +46,11 @@ Keep in mind that AI-generated code might have unexpected results, and it's cruc
 Lastly, ensure that you comply with all applicable laws, regulations, and ethical guidelines when using AI-generated code in your projects. The future of AI is in your hands – let's build it responsibly together.
 
 
+## Example Repository
+
+Visit the [gpt-pong](https://github.com/lwneal/gpt-pong) repository for an example of a project built entirely using the `gptswe` tool.
+
+
 ## Ignoring Files
 
 Any files listed in `.gitignore` will be ignored by `gptswe`
