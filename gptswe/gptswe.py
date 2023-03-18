@@ -23,11 +23,11 @@ def get_ignore_spec(repo_path, ignore_paths, ignore_patterns):
     return PathSpec.from_lines(GitWildMatchPattern, ignore_list)
 
 
-def process_repository(repo_path, ignore, ignore_patterns, fp):
+def process_repository(repo_path, ignore, ignore_patterns):
     ignore_spec = get_ignore_spec(repo_path, ignore, ignore_patterns)
     token_count = 0
+    output = ""
 
-    # Get a list of all files tracked by git
     tracked_files = subprocess.check_output(["git", "ls-files"], cwd=repo_path, text=True).splitlines()
 
     for file in tracked_files:
@@ -41,12 +41,12 @@ def process_repository(repo_path, ignore, ignore_patterns, fp):
                     continue
             text = f"`````\n{relpath}\n````\n{contents}\n"
             token_count += gptwc.token_count(text)
-            fp.write(text)
+            output += text
 
     text = "````\n\n"
     token_count += gptwc.token_count(text)
-    fp.write(text)
-    return token_count
+    output += text
+    return output, token_count
 
 
 def print_commit_message(args, author_name="GPT-4", author_email="gpt4@openai.com"):
@@ -71,12 +71,8 @@ def main():
     par.add_argument("--version", action="version", version=f"%(prog)s {__version__}", help="Display the version number and exit")
     args = par.parse_args()
 
-    fp = io.StringIO()
-    fp.write(args.preprompt)
-    content_tokens = process_repository(args.inputpath, args.ignore, args.ignore_patterns, fp)
-    fp.write('Instructions: ' + args.instruction)
-
-    full_output = fp.getvalue()
+    repo_output, content_tokens = process_repository(args.inputpath, args.ignore, args.ignore_patterns)
+    full_output = args.preprompt + repo_output + 'Instructions: ' + args.instruction
 
     if args.commit_message:
         print_commit_message(args)
