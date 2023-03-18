@@ -88,7 +88,6 @@ def main():
         sys.stderr.write(f"WARNING: {token_count} tokens exceeds the maximum of {args.max_tokens} tokens\nTry adding files to .gptignore or reducing the size of the codebase.\n")
 
     if args.clipboard:
-        full_output = fp.getvalue()
         pyperclip.copy(full_output)
         sys.stderr.write(f"\n{token_count} tokens copied to the clipboard.\n")
     else:
