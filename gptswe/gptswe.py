@@ -15,15 +15,16 @@ PREPROMPT = "Please read all of the following files carefully. Output terse copy
 INSTRUCTION = "Instructions: Read the above code. Identify and fix any obvious bugs in a terse but elegant style. Output a brief explanation of each fix.\n"
 
 
-def get_ignore_spec(repo_path, ignore_paths):
+def get_ignore_spec(repo_path, ignore_paths, ignore_patterns):
     dotignores = [os.path.join(repo_path, i) for i in ignore_paths]
     ignore_list = [line.strip() for path in dotignores if os.path.exists(path)
                    for line in open(path, 'r')] + [".*", "*.pem", 'venv']
+    ignore_list.extend(ignore_patterns.split(','))
     return PathSpec.from_lines(GitWildMatchPattern, ignore_list)
 
 
-def process_repository(repo_path, ignore, fp):
-    ignore_spec = get_ignore_spec(repo_path, ignore)
+def process_repository(repo_path, ignore, ignore_patterns, fp):
+    ignore_spec = get_ignore_spec(repo_path, ignore, ignore_patterns)
     token_count = 0
 
     # Get a list of all files tracked by git
@@ -65,12 +66,14 @@ def main():
     par.add_argument("--max-tokens", type=int, default=8000, help="Maximum number of tokens to generate")
     par.add_argument("-c", "--clipboard", action="store_true", help="Copy the output to the clipboard")
     par.add_argument("-m", "--commit-message", action="store_true", help="Output a copyable commit message")
+    par.add_argument("--ignore-patterns", default="", help="Ad-hoc ignore patterns separated by commas (e.g., '*.css,*.md')")
+
     par.add_argument("--version", action="version", version=f"%(prog)s {__version__}", help="Display the version number and exit")
     args = par.parse_args()
 
     fp = io.StringIO()
     fp.write(args.preprompt)
-    content_tokens = process_repository(args.inputpath, args.ignore, fp)
+    content_tokens = process_repository(args.inputpath, args.ignore, args.ignore_patterns, fp)
     fp.write('Instructions: ' + args.instruction)
 
     full_output = fp.getvalue()
