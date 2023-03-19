@@ -1,18 +1,31 @@
+import io
 import os
 import sys
 import argparse
+import subprocess
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
-import gptwc
-import io
-import pyperclip
-import subprocess
 from pkg_resources import get_distribution
+import gptwc
+import pyperclip
+import openai
 __version__ = get_distribution("gptswe").version
 
 
 PREPROMPT = "Please read all of the following files carefully. Output terse copy-pasteable instructions.\n"
-INSTRUCTION = "Instructions: Read the above code. Identify and fix any obvious bugs in a terse but elegant style. Output a brief explanation of each fix.\n"
+INSTRUCTION = "Read the above code. Identify and fix any obvious bugs in a terse but elegant style. Output a brief explanation of each fix.\n"
+
+
+def gpt_api(prompt, model='gpt-3.5-turbo'):
+    openai.api_key = os.environ.get("OPENAI_API_KEY")
+    completion = openai.ChatCompletion.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": PREPROMPT},
+            {"role": "user", "content": prompt},
+        ]
+    )
+    print(completion)
 
 
 def get_ignore_spec(repo_path, ignore_paths, ignore_patterns):
@@ -67,7 +80,7 @@ def main():
     par.add_argument("-c", "--clipboard", action="store_true", help="Copy the output to the clipboard")
     par.add_argument("-m", "--commit-message", action="store_true", help="Output a copyable commit message")
     par.add_argument("--ignore-patterns", default="", help="Ad-hoc ignore patterns separated by commas (e.g., '*.css,*.md')")
-
+    par.add_argument("-a", "--auto", action="store_true", help="Automatically send the prompt to the OpenAI API and output the result")
     par.add_argument("--version", action="version", version=f"%(prog)s {__version__}", help="Display the version number and exit")
     args = par.parse_args()
 
@@ -92,6 +105,9 @@ def main():
         sys.stderr.write(f"\n{token_count} tokens copied to the clipboard.\n")
     else:
         sys.stderr.write(f"\n{token_count} tokens written to {args.output or 'stdout'}\n")
+
+    if args.auto:
+        gpt_api(full_output)
 
 if __name__ == "__main__":
     main()
