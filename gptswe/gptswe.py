@@ -8,7 +8,6 @@ from pathspec.patterns import GitWildMatchPattern
 from pkg_resources import get_distribution
 import gptwc
 import pyperclip
-import openai
 __version__ = get_distribution("gptswe").version
 
 
@@ -17,6 +16,7 @@ INSTRUCTION = "Read the above code. Identify and fix any obvious bugs in a terse
 
 
 def gpt_api(prompt, model='gpt-3.5-turbo'):
+    import openai
     openai.api_key = os.environ.get("OPENAI_API_KEY")
     completion = openai.ChatCompletion.create(
         model=model,
