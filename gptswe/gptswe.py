@@ -36,8 +36,11 @@ def get_ignore_spec(repo_path, ignore_paths, ignore_patterns):
     return PathSpec.from_lines(GitWildMatchPattern, ignore_list)
 
 
-def process_repository(repo_path, ignore, ignore_patterns):
+def process_repository(repo_path, ignore, ignore_patterns, include_patterns):
     ignore_spec = get_ignore_spec(repo_path, ignore, ignore_patterns)
+    include_spec = None
+    if include_patterns:
+        include_spec = PathSpec.from_lines(GitWildMatchPattern, include_patterns.split(','))
     token_count = 0
     output = ""
 
@@ -46,7 +49,7 @@ def process_repository(repo_path, ignore, ignore_patterns):
     for file in tracked_files:
         file_path = os.path.join(repo_path, file)
         relpath = os.path.relpath(file_path, repo_path)
-        if not ignore_spec.match_file(relpath):
+        if not ignore_spec.match_file(relpath) and (include_spec is None or include_spec.match_file(relpath)):
             with open(file_path, 'r') as file:
                 try:
                     contents = file.read()
@@ -81,10 +84,11 @@ def main():
     par.add_argument("-m", "--commit-message", action="store_true", help="Output a copyable commit message")
     par.add_argument("--ignore-patterns", default="", help="Ad-hoc ignore patterns separated by commas (e.g., '*.css,*.md')")
     par.add_argument("-a", "--auto", action="store_true", help="Automatically send the prompt to the OpenAI API and output the result")
+    par.add_argument("-n", "--include-only", default="", help="Only include files that match the given patterns separated by commas (e.g., '*.py,foo.html')")
     par.add_argument("--version", action="version", version=f"%(prog)s {__version__}", help="Display the version number and exit")
     args = par.parse_args()
 
-    repo_output, content_tokens = process_repository(args.inputpath, args.ignore, args.ignore_patterns)
+    repo_output, content_tokens = process_repository(args.inputpath, args.ignore, args.ignore_patterns, args.include_only)
     full_output = args.preprompt + repo_output + 'Instructions: ' + args.instruction
 
     if args.commit_message:
